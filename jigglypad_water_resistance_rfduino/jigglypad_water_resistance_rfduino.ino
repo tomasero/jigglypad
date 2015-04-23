@@ -39,9 +39,10 @@ void setup () {
 }
 
 void loop () {
-  float waterResistance = getWaterResistance();
+  float w = getWaterResistance();
+  int waterResistance = (int)w;
   if (sendData(waterResistance)){
-    RFduinoBLE.sendFloat(waterResistance);
+    RFduinoBLE.sendInt(waterResistance);
   } else {
     RFduino_ULPDelay(INFINITE);
   }
@@ -52,7 +53,7 @@ void loop () {
   delay(1000);
 }
 
-boolean sendData(float res){
+boolean sendData(int res){
   //state = tampon and is over a certain threshold?
   return true;
 }
@@ -88,7 +89,7 @@ float getWaterResistance () {
   Serial.print("Output: ");
   Serial.println(output);
   //if output reaches a threshold, turn on bluetooth and send the data.
-  return output;
+  return (int) output;
 }
 
 void initPower () {
