@@ -7,6 +7,12 @@ const int probe = 6; //GPIO6
 const int resistorValue = 330;
 int state = true;
 
+// debounce time (in ms)
+int debounce_time = 10;
+
+// maximum debounce timeout (in ms)
+int debounce_timeout = 100;
+
 void setup () {
   pinMode(LED_PIN, OUTPUT);
   Serial.begin(9600);
@@ -17,9 +23,9 @@ void setup () {
   digitalWrite(LED_PIN, LOW);
   
   // configure the RFduino BLE properties
-  RFduinoBLE.advertisementData = "ledbtn";
+  RFduinoBLE.advertisementData = "fullness";
   RFduinoBLE.advertisementInterval = 500;
-  RFduinoBLE.deviceName = "RFduino";
+  RFduinoBLE.deviceName = "tampon";
   RFduinoBLE.txPowerLevel = -20;
   Serial.println("RFduino BLE Advertising interval is 500ms");
   Serial.println("RFduino BLE DeviceName: RFduino");
@@ -33,13 +39,22 @@ void setup () {
 }
 
 void loop () {
-  RFduino_ULPDelay(INFINITE);
   float waterResistance = getWaterResistance();
+  if (sendData(waterResistance)){
+    RFduinoBLE.sendFloat(waterResistance);
+  } else {
+    RFduino_ULPDelay(INFINITE);
+  }
   Serial.println(waterResistance);
   Serial.println("------------------");
   delay(1000);
   switchPolarity();
   delay(1000);
+}
+
+boolean sendData(float res){
+  //state = tampon and is over a certain threshold?
+  return true;
 }
 
 void switchPolarity () {
@@ -72,6 +87,7 @@ float getWaterResistance () {
   }
   Serial.print("Output: ");
   Serial.println(output);
+  //if output reaches a threshold, turn on bluetooth and send the data.
   return output;
 }
 
@@ -80,4 +96,21 @@ void initPower () {
    pinMode(power2, OUTPUT); 
   digitalWrite(power1, HIGH);
   digitalWrite(power2, LOW);
+}
+
+void RFduinoBLE_onDisconnect()
+{
+  // don't leave the led on if they disconnect
+  digitalWrite(LED_PIN, LOW);
+}
+
+void RFduinoBLE_onReceive(char *data, int len)
+{
+  //we should be able to turn electronics off from the app if need be.
+  
+  // if the first byte is 0x01 / on / true
+  if (data[0])
+    digitalWrite(LED_PIN, HIGH);
+  else
+    digitalWrite(LED_PIN, LOW);
 }
