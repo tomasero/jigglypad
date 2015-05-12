@@ -44,7 +44,7 @@ void loop () {
   if (sendData(waterResistance)){
     RFduinoBLE.sendInt(waterResistance);
   } else {
-    RFduino_ULPDelay(INFINITE);
+    //RFduino_ULPDelay(INFINITE);
   }
   Serial.println(waterResistance);
   Serial.println("------------------");
@@ -55,7 +55,11 @@ void loop () {
 
 boolean sendData(int res){
   //state = tampon and is over a certain threshold?
-  return true;
+  if (res < 6000){
+    return true;
+  } else {
+  return false;;
+  }
 }
 
 void switchPolarity () {
